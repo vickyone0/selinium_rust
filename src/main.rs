@@ -18,15 +18,19 @@ async fn main() -> Result<(), fantoccini::error::CmdError> {
         .await
         .expect("failed to connect to WebDriver");
 
-    c.goto("https://en.wikipedia.org/wiki/Foobar").await?;
+    c.goto("https://noscura.co.in/homePage").await?;
     let url = c.current_url().await?;
-    assert_eq!(url.as_ref(), "https://en.wikipedia.org/wiki/Foobar");
+    assert_eq!(url.as_ref(), "https://noscura.co.in/homePage");
 
-    c.find(Locator::Css(".mw-disambig")).await?.click().await?;
-    c.find(Locator::LinkText("Foo Lake")).await?.click().await?;
+    // Wait for the semantics tree to load (increase sleep if needed)
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
-    let url = c.current_url().await?;
-    assert_eq!(url.as_ref(), "https://en.wikipedia.org/wiki/Foo_Lake");
+    // Click the About button (try aria-label, update if needed)
+    let about_btn = c
+        .find(Locator::Css(r#"flt-semantics-host [aria-label="About"]"#))
+        .await?;
+
+    about_btn.click().await?;
 
     c.close().await
 }
